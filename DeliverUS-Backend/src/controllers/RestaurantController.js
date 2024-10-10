@@ -6,10 +6,10 @@ const index = async function (req, res) {
       {
         attributes: { exclude: ['userId'] },
         include:
-      {
-        model: RestaurantCategory,
-        as: 'restaurantCategory'
-      },
+        {
+          model: RestaurantCategory,
+          as: 'restaurantCategory'
+        },
         order: [[{ model: RestaurantCategory, as: 'restaurantCategory' }, 'name', 'ASC']]
       }
     )
@@ -25,6 +25,7 @@ const indexOwner = async function (req, res) {
       {
         attributes: { exclude: ['userId'] },
         where: { userId: req.user.id },
+        order: [['pinnedAt', 'ASC']],
         include: [{
           model: RestaurantCategory,
           as: 'restaurantCategory'
@@ -94,6 +95,17 @@ const destroy = async function (req, res) {
     res.status(500).send(err)
   }
 }
+const togglePinnedAt = async function (req, res) {
+  try {
+    const rest = Restaurant.findOne({ where: { id: req.params.restaurantId, pinnedAt: null } })
+
+    await Restaurant.update({ pinnedAt: rest ? new Date() : null }, { where: { id: req.params.restaurantId } })
+    const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
 
 const RestaurantController = {
   index,
@@ -101,6 +113,7 @@ const RestaurantController = {
   create,
   show,
   update,
-  destroy
+  destroy,
+  togglePinnedAt
 }
 export default RestaurantController

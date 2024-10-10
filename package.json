@@ -10,5 +10,9 @@
     "start:frontend:owner": "cd DeliverUS-Frontend-Owner && npx cross-env NODE_OPTIONS=--openssl-legacy-provider expo start",
     "install:all:win": "npm run copy:env:win && npm run install:backend && npm run migrate:backend && npm run install:frontend:owner",
     "install:all:bash": "npm run copy:env:bash && npm run install:backend && npm run migrate:backend && npm run install:frontend:owner"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.25.8",
+    "babel-jest": "^29.7.0"
   }
 }

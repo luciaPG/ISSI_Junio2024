@@ -67,6 +67,9 @@ const loadModel = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.INTEGER
     },
+    pinnedAt: {
+      type: DataTypes.DATE
+    },
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE,
