@@ -8,6 +8,7 @@ import { checkEntityExists } from '../middlewares/EntityMiddleware.js'
 import * as RestaurantMiddleware from '../middlewares/RestaurantMiddleware.js'
 import { handleFilesUpload } from '../middlewares/FileHandlerMiddleware.js'
 import { Restaurant } from '../models/models.js'
+import { check } from 'express-validator'
 
 const loadFileRoutes = function (app) {
   app.route('/restaurants')
@@ -41,7 +42,14 @@ const loadFileRoutes = function (app) {
       RestaurantMiddleware.restaurantHasNoOrders,
       RestaurantMiddleware.checkRestaurantOwnership,
       RestaurantController.destroy)
+  app.route('/restaurants/:restaurantId/togglePin')
+    .patch(
+      isLoggedIn,
+      hasRole('owner'),
+      checkEntityExists(Restaurant, 'restaurantId'),
+      RestaurantController.togglePin
 
+    )
   app.route('/restaurants/:restaurantId/orders')
     .get(
       isLoggedIn,

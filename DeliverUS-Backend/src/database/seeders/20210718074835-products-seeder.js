@@ -54,8 +54,8 @@ module.exports = {
         { name: 'Sweet sandwich', description: '1 piece', price: 1.5, image: process.env.PRODUCTS_FOLDER + '/montaditoChocolate.png', order: 10, availability: true, restaurantId: 2, productCategoryId: 5 },
         { name: 'Muffin', description: '1 piece', price: 1, image: process.env.PRODUCTS_FOLDER + '/muffin.jpeg', order: 11, availability: false, restaurantId: 2, productCategoryId: 5 }
       ], {})
-    const thousandProducts = module.exports.createNProducts(1000, 3)
-    await queryInterface.bulkInsert('Products', thousandProducts)
+    // const thousandProducts = module.exports.createNProducts(1000, 3)
+    // await queryInterface.bulkInsert('Products', thousandProducts)
 
     const thirtyProducts = module.exports.createNProducts(30, 5)
     await queryInterface.bulkInsert('Products', thirtyProducts)
@@ -66,8 +66,8 @@ module.exports = {
     const hundredProducts = module.exports.createNProducts(100, 7)
     await queryInterface.bulkInsert('Products', hundredProducts)
 
-    const twoHundredProducts = module.exports.createNProducts(200, 8)
-    await queryInterface.bulkInsert('Products', twoHundredProducts)
+    // const twoHundredProducts = module.exports.createNProducts(200, 8)
+    // await queryInterface.bulkInsert('Products', twoHundredProducts)
 
     const oneProduct = module.exports.createNProducts(1, 9)
     await queryInterface.bulkInsert('Products', oneProduct)

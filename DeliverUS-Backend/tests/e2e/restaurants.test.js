@@ -621,3 +621,19 @@ describe('Get analytics restaurant', () => {
     await shutdownApp()
   })
 })
+
+describe('Patch restaurant pin', () => {
+  let owner, restaurant, app
+  beforeAll(async () => {
+    app = await getApp()
+    owner = await getLoggedInOwner()
+    restaurant = await getFirstRestaurantOfOwner(owner)
+  })
+  it('Should return 200 when valid restaurant', async () => {
+    const response = await request(app).patch(`/restaurants/${restaurant.id}/togglePin`).set('Authorization', `Bearer ${owner.token}`).send()
+    expect(response.status).toBe(200)
+  })
+  afterAll(async () => {
+    await shutdownApp()
+  })
+})

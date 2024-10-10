@@ -1,5 +1,5 @@
 import { Restaurant, Product, RestaurantCategory, ProductCategory } from '../models/models.js'
-
+import sequelize from 'sequelize'
 const index = async function (req, res) {
   try {
     const restaurants = await Restaurant.findAll(
@@ -10,7 +10,7 @@ const index = async function (req, res) {
         model: RestaurantCategory,
         as: 'restaurantCategory'
       },
-        order: [[{ model: RestaurantCategory, as: 'restaurantCategory' }, 'name', 'ASC']]
+        order: [[{ model: RestaurantCategory, as: 'restaurantCategory' }, 'name', 'ASC'], [sequelize.literal('pinned IS NOT NULL'), 'DESC']]
       }
     )
     res.json(restaurants)
@@ -46,7 +46,20 @@ const create = async function (req, res) {
     res.status(500).send(err)
   }
 }
+const togglePin = async function (req, res) {
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    await Restaurant.update(
+      { pinned: restaurant.pinned ? false : new Date() },
+      { where: { id: restaurant.id } }
+    )
+    const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
 
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
 const show = async function (req, res) {
   // Only returns PUBLIC information of restaurants
   try {
@@ -101,6 +114,7 @@ const RestaurantController = {
   create,
   show,
   update,
-  destroy
+  destroy,
+  togglePin
 }
 export default RestaurantController
