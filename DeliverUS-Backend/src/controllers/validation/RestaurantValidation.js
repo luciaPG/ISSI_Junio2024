@@ -34,6 +34,7 @@ const update = [
   check('url').optional({ nullable: true, checkFalsy: true }).isString().isURL().trim(),
   check('shippingCosts').exists().isFloat({ min: 0 }).toFloat(),
   check('email').optional({ nullable: true, checkFalsy: true }).isString().isEmail().trim(),
+  check('pinnedAt').optional({ nullable: true, checkFalsy: true }).isDate().toDate(),
   check('phone').optional({ nullable: true, checkFalsy: true }).isString().isLength({ min: 1, max: 255 }).trim(),
   check('restaurantCategoryId').exists({ checkNull: true }).isInt({ min: 1 }).toInt(),
   check('userId').not().exists(),
