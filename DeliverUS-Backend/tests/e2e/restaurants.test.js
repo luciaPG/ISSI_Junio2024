@@ -621,3 +621,41 @@ describe('Get analytics restaurant', () => {
     await shutdownApp()
   })
 })
+
+describe('PATCH /restaurants/:restaurantId/togglePinnedAt', () => {
+  let owner, restaurant, app
+
+  beforeAll(async () => {
+    app = await getApp()
+    owner = await getLoggedInOwner()
+    restaurant = await getFirstRestaurantOfOwner(owner)
+  })
+
+  afterAll(async () => {
+    await shutdownApp()
+  })
+
+  it('should toggle the pinnedAt field of a restaurant', async () => {
+    const response = await request(app)
+      .patch(`/restaurants/${restaurant.id}/togglePinnedAt`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send()
+    expect(response.status).toBe(200)
+    expect(response.body.pinnedAt).not.toBeNull()
+
+    const responseToggleBack = await request(app)
+      .patch(`/restaurants/${restaurant.id}/togglePinnedAt`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send()
+    expect(responseToggleBack.status).toBe(200)
+    expect(responseToggleBack.body.pinnedAt).toBeNull()
+  })
+
+  it('should return an error if the restaurant does not exist', async () => {
+    const response = await request(app)
+      .patch('/restaurants/999999999/togglePinnedAt')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send()
+    expect(response.status).toBe(404)
+  })
+})

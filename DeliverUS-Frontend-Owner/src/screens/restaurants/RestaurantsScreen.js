@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { StyleSheet, FlatList, Pressable, View } from 'react-native'
 
-import { getAll, remove } from '../../api/RestaurantEndpoints'
+import { getAll, remove, togglePinnedAtOP } from '../../api/RestaurantEndpoints'
 import ImageCard from '../../components/ImageCard'
 import TextSemiBold from '../../components/TextSemibold'
 import TextRegular from '../../components/TextRegular'
@@ -11,12 +11,15 @@ import * as GlobalStyles from '../../styles/GlobalStyles'
 import { AuthorizationContext } from '../../context/AuthorizationContext'
 import { showMessage } from 'react-native-flash-message'
 import DeleteModal from '../../components/DeleteModal'
+import ConfirmationModal from '../../components/ConfirmationModal'
 import restaurantLogo from '../../../assets/restaurantLogo.jpeg'
 
 export default function RestaurantsScreen ({ navigation, route }) {
   const [restaurants, setRestaurants] = useState([])
   const [restaurantToBeDeleted, setRestaurantToBeDeleted] = useState(null)
+  const [restaurantToBePinned, setRestaurantToBePinned] = useState(null)
   const { loggedInUser } = useContext(AuthorizationContext)
+  const [onOpen, setOpen] = useState(false)
 
   useEffect(() => {
     if (loggedInUser) {
@@ -25,6 +28,35 @@ export default function RestaurantsScreen ({ navigation, route }) {
       setRestaurants(null)
     }
   }, [loggedInUser, route])
+
+  async function togglePinnedAt (item) {
+    try {
+      const updatedRestaurant = await togglePinnedAtOP(item.id)
+      setRestaurantToBePinned(null)
+      if (item.pinnedAt) {
+        showMessage({
+          message: `Restaurant ${updatedRestaurant.name} succesfully Unpinned`,
+          type: 'success',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      } else {
+        showMessage({
+          message: `Restaurant ${updatedRestaurant.name} succesfully pinned`,
+          type: 'success',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      }
+      fetchRestaurants()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  function pinFunction (item) {
+    setRestaurantToBePinned(item)
+    setOpen(true)
+  }
 
   const renderRestaurant = ({ item }) => {
     return (
@@ -39,7 +71,24 @@ export default function RestaurantsScreen ({ navigation, route }) {
         {item.averageServiceMinutes !== null &&
           <TextSemiBold>Avg. service time: <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>{item.averageServiceMinutes} min.</TextSemiBold></TextSemiBold>
         }
-        <TextSemiBold>Shipping: <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>{item.shippingCosts.toFixed(2)}€</TextSemiBold></TextSemiBold>
+        <View style={{ diplay: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginRight: '5rem' }}>
+          <TextSemiBold>Shipping: <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>{item.shippingCosts.toFixed(2)}€</TextSemiBold></TextSemiBold>
+          <Pressable onPress={() => pinFunction(item)}>
+            <MaterialCommunityIcons
+              name={item.pinnedAt === null ? 'pin-outline' : 'pin'}
+              color={GlobalStyles.brandSecondaryTap}
+              size={24}
+            />
+          </Pressable>
+
+          <ConfirmationModal
+            isVisible={restaurantToBePinned !== null}
+            onCancel={() => setRestaurantToBePinned(null)}
+            onConfirm={() => togglePinnedAt(restaurantToBePinned)}>
+            <TextRegular>The products of this restaurant will be deleted as well</TextRegular>
+            <TextRegular>If the restaurant has orders, it cannot be deleted.</TextRegular>
+          </ConfirmationModal>
+        </View>
         <View style={styles.actionButtonsContainer}>
           <Pressable
             onPress={() => navigation.navigate('EditRestaurantScreen', { id: item.id })
@@ -52,15 +101,15 @@ export default function RestaurantsScreen ({ navigation, route }) {
               },
               styles.actionButton
             ]}>
-          <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
-            <MaterialCommunityIcons name='pencil' color={'white'} size={20}/>
-            <TextRegular textStyle={styles.text}>
-              Edit
-            </TextRegular>
-          </View>
-        </Pressable>
+            <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
+              <MaterialCommunityIcons name='pencil' color={'white'} size={20} />
+              <TextRegular textStyle={styles.text}>
+                Edit
+              </TextRegular>
+            </View>
+          </Pressable>
 
-        <Pressable
+          <Pressable
             onPress={() => { setRestaurantToBeDeleted(item) }}
             style={({ pressed }) => [
               {
@@ -70,13 +119,13 @@ export default function RestaurantsScreen ({ navigation, route }) {
               },
               styles.actionButton
             ]}>
-          <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
-            <MaterialCommunityIcons name='delete' color={'white'} size={20}/>
-            <TextRegular textStyle={styles.text}>
-              Delete
-            </TextRegular>
-          </View>
-        </Pressable>
+            <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
+              <MaterialCommunityIcons name='delete' color={'white'} size={20} />
+              <TextRegular textStyle={styles.text}>
+                Delete
+              </TextRegular>
+            </View>
+          </Pressable>
         </View>
       </ImageCard>
     )
@@ -93,27 +142,27 @@ export default function RestaurantsScreen ({ navigation, route }) {
   const renderHeader = () => {
     return (
       <>
-      {loggedInUser &&
-      <Pressable
-        onPress={() => navigation.navigate('CreateRestaurantScreen')
+        {loggedInUser &&
+          <Pressable
+            onPress={() => navigation.navigate('CreateRestaurantScreen')
+            }
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed
+                  ? GlobalStyles.brandGreenTap
+                  : GlobalStyles.brandGreen
+              },
+              styles.button
+            ]}>
+            <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
+              <MaterialCommunityIcons name='plus-circle' color={'white'} size={20} />
+              <TextRegular textStyle={styles.text}>
+                Create restaurant
+              </TextRegular>
+            </View>
+          </Pressable>
         }
-        style={({ pressed }) => [
-          {
-            backgroundColor: pressed
-              ? GlobalStyles.brandGreenTap
-              : GlobalStyles.brandGreen
-          },
-          styles.button
-        ]}>
-        <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
-          <MaterialCommunityIcons name='plus-circle' color={'white'} size={20}/>
-          <TextRegular textStyle={styles.text}>
-            Create restaurant
-          </TextRegular>
-        </View>
-      </Pressable>
-    }
-    </>
+      </>
     )
   }
   const fetchRestaurants = async () => {
@@ -155,21 +204,21 @@ export default function RestaurantsScreen ({ navigation, route }) {
 
   return (
     <>
-    <FlatList
-      style={styles.container}
-      data={restaurants}
-      renderItem={renderRestaurant}
-      keyExtractor={item => item.id.toString()}
-      ListHeaderComponent={renderHeader}
-      ListEmptyComponent={renderEmptyRestaurantsList}
-    />
-    <DeleteModal
-      isVisible={restaurantToBeDeleted !== null}
-      onCancel={() => setRestaurantToBeDeleted(null)}
-      onConfirm={() => removeRestaurant(restaurantToBeDeleted)}>
+      <FlatList
+        style={styles.container}
+        data={restaurants}
+        renderItem={renderRestaurant}
+        keyExtractor={item => item.id.toString()}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyRestaurantsList}
+      />
+      <DeleteModal
+        isVisible={restaurantToBeDeleted !== null}
+        onCancel={() => setRestaurantToBeDeleted(null)}
+        onConfirm={() => removeRestaurant(restaurantToBeDeleted)}>
         <TextRegular>The products of this restaurant will be deleted as well</TextRegular>
         <TextRegular>If the restaurant has orders, it cannot be deleted.</TextRegular>
-    </DeleteModal>
+      </DeleteModal>
     </>
   )
 }

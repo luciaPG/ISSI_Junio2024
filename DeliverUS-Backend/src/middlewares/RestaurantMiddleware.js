@@ -24,5 +24,18 @@ const restaurantHasNoOrders = async (req, res, next) => {
     return res.status(500).send(err.message)
   }
 }
+const restaurantExists = async (req, res, next) => {
+  const { restaurantId } = req.params
+  try {
+    const restaurant = await Restaurant.findByPk(restaurantId)
+    if (!restaurant) {
+      return res.status(404).json({ error: 'Restaurant not found' })
+    }
+    req.restaurant = restaurant
+    next()
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
 
-export { checkRestaurantOwnership, restaurantHasNoOrders }
+export { checkRestaurantOwnership, restaurantHasNoOrders, restaurantExists }

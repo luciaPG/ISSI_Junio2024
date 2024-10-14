@@ -1,4 +1,5 @@
 import { Restaurant, Product, RestaurantCategory, ProductCategory } from '../models/models.js'
+import Sequelize from 'sequelize'
 
 const index = async function (req, res) {
   try {
@@ -25,7 +26,7 @@ const indexOwner = async function (req, res) {
       {
         attributes: { exclude: ['userId'] },
         where: { userId: req.user.id },
-        order: [['pinnedAt', 'ASC']],
+        order: [[Sequelize.fn('ISNULL', Sequelize.col('pinnedAt')), 'ASC'], ['pinnedAt', 'ASC']],
         include: [{
           model: RestaurantCategory,
           as: 'restaurantCategory'
@@ -97,9 +98,11 @@ const destroy = async function (req, res) {
 }
 const togglePinnedAt = async function (req, res) {
   try {
-    const rest = Restaurant.findOne({ where: { id: req.params.restaurantId, pinnedAt: null } })
-
-    await Restaurant.update({ pinnedAt: rest ? new Date() : null }, { where: { id: req.params.restaurantId } })
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    await Restaurant.update(
+      { pinnedAt: restaurant.pinnedAt ? null : new Date() },
+      { where: { id: restaurant.id } }
+    )
     const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
     res.json(updatedRestaurant)
   } catch (err) {

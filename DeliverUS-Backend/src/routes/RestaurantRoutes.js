@@ -54,7 +54,9 @@ const loadFileRoutes = function (app) {
       isLoggedIn,
       hasRole('owner'),
       checkEntityExists(Restaurant, 'restaurantId'),
-      RestaurantController.togglePinnedAt)
+      RestaurantMiddleware.restaurantExists,
+      RestaurantController.togglePinnedAt
+    )
 
   app.route('/restaurants/:restaurantId/products')
     .get(
